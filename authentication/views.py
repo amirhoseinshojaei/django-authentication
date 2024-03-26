@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect
 from .forms import SignupForm
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate , login
+from django.contrib import messages
 # Create your views here.
 
 def signup(request):
@@ -15,3 +18,24 @@ def signup(request):
         'form':signup_form
     }
     return render (request,'authentication/signup.html',context)
+
+def login(request):
+
+    if request.method == 'POST':
+        login_form = AuthenticationForm(request,request.POST)
+        if login_form.is_valid():
+            first_name = login_form.cleaned_data.get("first_name")
+            username = login_form.cleaned_data.get("username")
+            password = login_form.cleaned_data.get("password")
+            user = authenticate(username=username , password=password)
+            if user is not None:
+                login(request,user)
+                return redirect('home')
+            else:
+                messages.error(request,"Please first signup")
+    else:
+        login_form = AuthenticationForm()
+    context = {
+        'form':login_form
+    }
+    return render (request,"authentication/login.html",context)
