@@ -41,7 +41,7 @@ Users can access the application through a web browser. They can sign up for a n
 ## Installation
 
 install using 'clone'...
-    git clone [text](https://github.com/amirhoseinshojaei/django-authentication.git)
+    git clone https://github.com/amirhoseinshojaei/django-authentication.git
 
 **migrations**
     python manage.py makemigrations
