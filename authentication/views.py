@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect
-from .forms import SignupForm
+from .forms import SignupForm , PasswordResetRequest
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate , login
+from django.contrib.auth import authenticate , login 
+from django.contrib.auth.models import User
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import default_token_generator
+from django.template.loader import render_to_string
+from django.core.mail import send_mail
 from django.contrib import messages
 # Create your views here.
 
@@ -41,3 +47,38 @@ def login(request):
         'form':login_form
     }
     return render (request,"authentication/login.html",context)
+
+def password_reset_request(request):
+
+    if request.method=="POST":
+        form = PasswordResetRequest(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            try:
+                user = User.objects.get(email = email)
+            except user.DoesNotExist:
+                user = None
+            
+            if user is not None:
+                # Generate Toke & send email
+                uid = urlsafe_base64_encode(force_bytes(user.pk))
+                token = default_token_generator.make_token(user)
+                password_reset_link = request.build_absolute_uri("/password_reset/confirm/"+uid+'/'+token+'/')
+                email_subject = "Password Reset"
+                email_body = render_to_string ('authentication/password_reset_email.html',{
+                    'user':user,
+                    'password_reset_link':password_reset_link
+                })
+                send_mail(email_subject,email_body,'from@example.com',[user.email])
+                messages.success(request, 'An email has been sent with instructions to reset your password.')
+                return redirect('password_reset_request')
+            else:
+                messages.error(request,"No user found with that email address")
+    else:
+        form = PasswordResetRequest()
+    
+    return render("authentication/password_reset_request.html",{'form':form})
+
+
+
+
