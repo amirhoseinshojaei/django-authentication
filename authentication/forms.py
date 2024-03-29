@@ -14,3 +14,7 @@ class SignupForm(UserCreationForm):
 
 class PasswordResetRequest(forms.ModelForm):
     email = forms.EmailField(label='Email')
+
+class ConfirmPassword(forms.ModelForm):
+    new_password = forms.CharField(max_length=255)
+    confirm_password = forms.CharField(max_length=255)
