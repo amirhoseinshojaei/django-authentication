@@ -10,3 +10,7 @@ class SignupForm(UserCreationForm):
         fields = (
             'first_name','last_name','username', 'email', 'password1', 'password2'
         )
+
+
+class PasswordResetRequest(forms.ModelForm):
+    email = forms.EmailField(label='Email')
