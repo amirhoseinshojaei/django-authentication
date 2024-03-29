@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
-from .forms import SignupForm , PasswordResetRequest
+from .forms import SignupForm , PasswordResetRequest , ConfirmPassword
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate , login 
 from django.contrib.auth.models import User
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
+from django.utils.http import  urlsafe_base64_encode , urlsafe_base64_decode  
+from django.utils.encoding import  force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 from django.core.mail import send_mail
@@ -80,5 +80,37 @@ def password_reset_request(request):
     return render("authentication/password_reset_request.html",{'form':form})
 
 
+def confirm_password(request, uidb64 , token):
+    try:
+        uid =  str(urlsafe_base64_decode(uidb64),'utf-8')
+        user = User.objects.get(pk = uid)
+    except (TypeError , ValueError , OverflowError , User.DoesNotExist):
+        user = None
+    
+    if user is not None:
 
+        if request.method == "POST":
+            form = ConfirmPassword(request.POST)
+            if form.is_valid():
+                new_password = form.cleaned_data.get("new_password")
+                confirm_password = form.cleaned_data.get("confirm_password")
+                if new_password == confirm_password:
+                    user.set_password(new_password)
+                    user.save()
+                    # Login the user in automatically after password reset
+                    user = authenticate(username = user.username , password = new_password)
+
+                    if user is not None:
+                        login(request,user)
+                        messages.success(request , "Your password has been successfully reset.")
+                        return redirect ("home")
+                else:
+                    messages.error(request,"Password do not match")
+        else:
+            form = ConfirmPassword()
+    else:
+        # Token is invalid or expired
+        messages.error(request,"Invalid Password rest link")
+        return redirect ('home')
+    return render ("authentication/confirm_password.html",{'form':form})
 
