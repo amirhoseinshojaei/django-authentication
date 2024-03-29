@@ -12,9 +12,9 @@ class SignupForm(UserCreationForm):
         )
 
 
-class PasswordResetRequest(forms.ModelForm):
+class PasswordResetRequestForm(forms.Form):
     email = forms.EmailField(label='Email')
 
-class ConfirmPassword(forms.ModelForm):
+class ConfirmPasswordForm(forms.Form):
     new_password = forms.CharField(max_length=255)
     confirm_password = forms.CharField(max_length=255)
