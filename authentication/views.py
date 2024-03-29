@@ -27,7 +27,6 @@ def login(request):
     if request.method == 'POST':
         login_form = AuthenticationForm(request,request.POST)
         if login_form.is_valid():
-            first_name = login_form.cleaned_data.get("first_name")
             username = login_form.cleaned_data.get("username")
             password = login_form.cleaned_data.get("password")
             user = authenticate(username=username , password=password)
