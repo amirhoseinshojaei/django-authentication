@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
-from .forms import SignupForm , PasswordResetRequest , ConfirmPassword
+from .forms import SignupForm , PasswordResetRequestForm , ConfirmPasswordForm
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate , login 
+from django.contrib.auth import authenticate , login as auth_login
 from django.contrib.auth.models import User
 from django.utils.http import  urlsafe_base64_encode , urlsafe_base64_decode  
 from django.utils.encoding import  force_bytes
@@ -37,8 +37,8 @@ def login(request):
             password = login_form.cleaned_data.get("password")
             user = authenticate(username=username , password=password)
             if user is not None:
-                login(request,user)
-                return redirect('home')
+                auth_login(request,user)
+                return redirect('authentication:home')
             else:
                 messages.error(request,"Please first signup")
     else:
@@ -49,35 +49,33 @@ def login(request):
     return render (request,"authentication/login.html",context)
 
 def password_reset_request(request):
-
-    if request.method=="POST":
-        form = PasswordResetRequest(request.POST)
+    if request.method == "POST":
+        form = PasswordResetRequestForm(request.POST)
         if form.is_valid():
             email = form.cleaned_data.get("email")
             try:
-                user = User.objects.get(email = email)
-            except user.DoesNotExist:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
                 user = None
             
             if user is not None:
-                # Generate Toke & send email
+                # Generate Token & send email
                 uid = urlsafe_base64_encode(force_bytes(user.pk))
                 token = default_token_generator.make_token(user)
-                password_reset_link = request.build_absolute_uri("/password_reset/confirm/"+uid+'/'+token+'/')
+                password_reset_link = request.build_absolute_uri("/password_reset/confirm/" + uid + '/' + token + '/')
                 email_subject = "Password Reset"
-                email_body = render_to_string ('authentication/password_reset_email.html',{
-                    'user':user,
-                    'password_reset_link':password_reset_link
+                email_body = render_to_string('authentication/password_reset_email.html', {
+                    'user': user,
+                    'password_reset_link': password_reset_link
                 })
-                send_mail(email_subject,email_body,'from@example.com',[user.email])
+                send_mail(email_subject, email_body, 'from@example.com', [user.email])
                 messages.success(request, 'An email has been sent with instructions to reset your password.')
                 return redirect('password_reset_request')
             else:
-                messages.error(request,"No user found with that email address")
+                messages.error(request, "No user found with that email address")
     else:
-        form = PasswordResetRequest()
-    
-    return render("authentication/password_reset_request.html",{'form':form})
+        form = PasswordResetRequestForm()
+    return render(request, "authentication/password_reset_request.html", {'form': form})
 
 
 def confirm_password(request, uidb64 , token):
@@ -90,7 +88,7 @@ def confirm_password(request, uidb64 , token):
     if user is not None:
 
         if request.method == "POST":
-            form = ConfirmPassword(request.POST)
+            form = ConfirmPasswordForm(request.POST)
             if form.is_valid():
                 new_password = form.cleaned_data.get("new_password")
                 confirm_password = form.cleaned_data.get("confirm_password")
@@ -107,7 +105,7 @@ def confirm_password(request, uidb64 , token):
                 else:
                     messages.error(request,"Password do not match")
         else:
-            form = ConfirmPassword()
+            form = ConfirmPasswordForm()
     else:
         # Token is invalid or expired
         messages.error(request,"Invalid Password rest link")
