@@ -1,5 +1,5 @@
 # Django Authentication Project
-![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+<img src="https://maxmautner.com/public/images/django.gif" align="center">
 
 This Django project provides user authentication features including signup, login, password reset,password change, and logout functionalities.
 
@@ -43,9 +43,13 @@ install using `clone`......
 
         git clone https://github.com/amirhoseinshojaei/django-authentication.git
 
+**Install Requirements**
+
+
+        pip install requirements.txt
+
 **migrations**
 
-        python manage.py makemigrations
 
         python manage.py migrate
 
